@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flood Risk Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      min-height: 100vh; color: white; padding: 20px; 
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    .header { text-align: center; margin-bottom: 40px; }
+    .header h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -1px; }
+    .header h1 span { color: #38bdf8; }
+    .header p { color: #94a3b8; margin-top: 8px; font-size: 1rem; }
+    .card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 32px; margin-bottom: 24px;
+    }
+    .card h2 { font-size: 1.1rem; color: #94a3b8;
+               text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .tab {
+      padding: 10px 20px; border-radius: 10px; border: none;
+      cursor: pointer; font-size: 0.9rem; font-weight: 600;
+      transition: all 0.3s; background: rgba(255,255,255,0.05); color: #94a3b8;
+    }
+    .tab.active { background: #38bdf8; color: #0f2027; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+    select, input {
+      width: 100%; padding: 12px 16px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05); color: white; font-size: 1rem;
+    }
+    select option { background: #203a43; color: white; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .btn {
+      width: 100%; padding: 14px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #0f2027; font-size: 1rem; font-weight: 700;
+      cursor: pointer; margin-top: 8px; transition: all 0.3s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(56,189,248,0.4); }
+    .result { text-align: center; padding: 32px; }
+    .result-icon { font-size: 4rem; margin-bottom: 16px; }
+    .result-level { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; }
+    .result-level.danger { color: #f87171; }
+    .result-level.success { color: #4ade80; }
+    .result-confidence { color: #94a3b8; font-size: 1rem; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+    .stat {
+      background: rgba(255,255,255,0.05); border-radius: 12px;
+      padding: 16px; text-align: center;
+    }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #38bdf8; }
+    .stat-label { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Flood <span>Risk</span> Management</h1>
+    <p>Bangladesh Flood Early Warning System</p>
+  </div>
+
+  <div class="card">
+    <h2>🔍 Analyze Risk</h2>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('area', this)">By Area Name</button>
+      <button class="tab" onclick="switchTab('manual', this)">Manual Input</button>
+    </div>
+    <form method="POST" action="/predict">
+      <div id="area-tab">
+        <div class="form-group">
+          <label>Select Area</label>
+          <select name="area_name">
+            <option value="">-- Choose an area --</option>
+            {% for area in areas %}
+            <option value="{{ area }}">{{ area }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div id="manual-tab" class="hidden">
+        <div class="form-group">
+          <label>Area Name (optional)</label>
+          <input type="text" name="area_name" placeholder="e.g. My Area"/>
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Rainfall (mm)</label>
+            <input type="number" name="rainfall" placeholder="e.g. 200" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>River Level (m)</label>
+            <input type="number" name="river_level" placeholder="e.g. 7.5" step="0.1" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Temperature (°C)</label>
+            <input type="number" name="temperature" placeholder="e.g. 32" min="0"/>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn">⚡ Analyze Flood Risk</button>
+    </form>
+  </div>
+
+  {% if result %}
+  <div class="card">
+    <div class="result">
+      <div class="result-icon">{{ result.icon }}</div>
+      <div class="result-level {{ result.color }}">{{ result.level }} RISK</div>
+      <div class="result-confidence">
+        {{ result.area }} — Confidence: {{ result.confidence }}%
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">{{ result.rainfall }}</div>
+          <div class="stat-label">Rainfall (mm)</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">{{ result.river_level }}</div>
+          <div class="stat-label">River Level (m)</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">{{ result.temperature }}</div>
+          <div class="stat-label">Temperature (°C)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('area-tab').classList.add('hidden');
+    document.getElementById('manual-tab').classList.add('hidden');
+    document.getElementById(tab + '-tab').classList.remove('hidden');
+  }
+</script>
+</body>
+</html>

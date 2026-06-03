@@ -1,0 +1,12 @@
+{
+  "areas": [
+    {"name": "Sylhet",      "rainfall": 320, "river_level": 9.8, "temperature": 36},
+    {"name": "Sunamganj",   "rainfall": 290, "river_level": 9.2, "temperature": 35},
+    {"name": "Dhaka",       "rainfall": 180, "river_level": 6.5, "temperature": 32},
+    {"name": "Chittagong",  "rainfall": 250, "river_level": 7.8, "temperature": 34},
+    {"name": "Rajshahi",    "rainfall":  60, "river_level": 2.5, "temperature": 26},
+    {"name": "Khulna",      "rainfall":  90, "river_level": 3.8, "temperature": 28},
+    {"name": "Jessore",     "rainfall":  75, "river_level": 3.2, "temperature": 27},
+    {"name": "Barisal",     "rainfall": 200, "river_level": 7.2, "temperature": 33}
+  ]
+}
