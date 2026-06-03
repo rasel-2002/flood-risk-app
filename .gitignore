@@ -1,7 +1,5 @@
 .env
 __pycache__/
 *.pyc
-*.pkl
-*.html
 *_files/
 .vscode/

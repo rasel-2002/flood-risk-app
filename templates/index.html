@@ -3,84 +3,253 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Flood Risk Management</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <title>Bangladesh Flood Early Warning System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      min-height: 100vh; color: white; padding: 20px; 
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
     }
-    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-    .header { text-align: center; margin-bottom: 40px; }
-    .header h1 { font-size: 2.5rem; font-weight: 700; letter-spacing: -1px; }
+
+    /* Animated water background */
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #0a1628 0%, #0d2744 40%, #0a3d5c 70%, #0d5a7a 100%);
+      z-index: -2;
+    }
+
+    .wave-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 200px;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .wave {
+      position: absolute;
+      bottom: 0;
+      width: 200%;
+      height: 100%;
+    }
+
+    .wave1 {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120'%3E%3Cpath fill='%23065a8a' fill-opacity='0.6' d='M0,60 C360,120 720,0 1080,60 C1260,90 1380,50 1440,60 L1440,120 L0,120 Z'/%3E%3C/svg%3E") repeat-x bottom;
+      background-size: 720px 100px;
+      animation: wave1 8s linear infinite;
+    }
+
+    .wave2 {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120'%3E%3Cpath fill='%23044e7a' fill-opacity='0.5' d='M0,80 C240,20 480,100 720,60 C960,20 1200,100 1440,80 L1440,120 L0,120 Z'/%3E%3C/svg%3E") repeat-x bottom;
+      background-size: 900px 80px;
+      animation: wave2 12s linear infinite reverse;
+    }
+
+    .wave3 {
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120'%3E%3Cpath fill='%23033d61' fill-opacity='0.4' d='M0,40 C180,80 360,20 540,60 C720,100 900,20 1080,60 C1260,100 1380,40 1440,60 L1440,120 L0,120 Z'/%3E%3C/svg%3E") repeat-x bottom;
+      background-size: 600px 60px;
+      animation: wave3 6s linear infinite;
+    }
+
+    @keyframes wave1 { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes wave2 { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes wave3 { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* Floating rain drops */
+    .rain { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+    .drop {
+      position: absolute;
+      width: 1px;
+      background: linear-gradient(transparent, rgba(100,180,255,0.4));
+      animation: fall linear infinite;
+    }
+    @keyframes fall { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(100vh); opacity: 1; } }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 30px 20px 200px; }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 36px; }
+    .flag { font-size: 2.5rem; margin-bottom: 8px; }
+    .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; }
     .header h1 span { color: #38bdf8; }
-    .header p { color: #94a3b8; margin-top: 8px; font-size: 1rem; }
+    .header p { color: #94a3b8; margin-top: 8px; font-size: 0.9rem; }
+
+    /* Alert banner */
+    .alert-banner {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 12px;
+      padding: 12px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #fca5a5;
+    }
+
+    /* Card */
     .card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px; padding: 32px; margin-bottom: 24px;
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
     }
-    .card h2 { font-size: 1.1rem; color: #94a3b8;
-               text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .card-title {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
     .tab {
-      padding: 10px 20px; border-radius: 10px; border: none;
-      cursor: pointer; font-size: 0.9rem; font-weight: 600;
-      transition: all 0.3s; background: rgba(255,255,255,0.05); color: #94a3b8;
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      background: rgba(255,255,255,0.05);
+      color: #94a3b8;
     }
-    .tab.active { background: #38bdf8; color: #0f2027; }
+    .tab.active { background: #38bdf8; color: #0a1628; }
+
+    /* Form */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+    label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
     select, input {
-      width: 100%; padding: 12px 16px; border-radius: 10px;
+      width: 100%; padding: 11px 14px; border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05); color: white; font-size: 1rem;
+      background: rgba(255,255,255,0.05); color: white; font-size: 0.9rem;
     }
-    select option { background: #203a43; color: white; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    select option { background: #0d2744; }
+    input[type="date"], input[type="time"] { color-scheme: dark; }
+
+    /* Button */
     .btn {
       width: 100%; padding: 14px; border-radius: 12px; border: none;
-      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-      color: #0f2027; font-size: 1rem; font-weight: 700;
-      cursor: pointer; margin-top: 8px; transition: all 0.3s;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.3s; margin-top: 4px;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(56,189,248,0.4); }
-    .result { text-align: center; padding: 32px; }
-    .result-icon { font-size: 4rem; margin-bottom: 16px; }
-    .result-level { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; }
-    .result-level.danger { color: #f87171; }
-    .result-level.success { color: #4ade80; }
-    .result-confidence { color: #94a3b8; font-size: 1rem; margin-bottom: 24px; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
-    .stat {
-      background: rgba(255,255,255,0.05); border-radius: 12px;
-      padding: 16px; text-align: center;
-    }
-    .stat-value { font-size: 1.5rem; font-weight: 700; color: #38bdf8; }
-    .stat-label { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(14,165,233,0.4); }
+
     .hidden { display: none; }
+
+    /* Result */
+    .result-header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px; }
+    .result-icon { font-size: 3.5rem; margin-bottom: 10px; }
+    .result-level { font-size: 2rem; font-weight: 800; margin-bottom: 4px; }
+    .result-level.danger { color: #ef4444; }
+    .result-level.success { color: #22c55e; }
+    .result-level.warning { color: #f59e0b; }
+    .result-meta { color: #94a3b8; font-size: 0.85rem; }
+
+    /* Stats grid */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px; padding: 14px; text-align: center;
+    }
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: #38bdf8; }
+    .stat-label { font-size: 0.7rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Rain forecast */
+    .rain-section { margin-bottom: 24px; }
+    .rain-title { font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; font-weight: 600; }
+    .rain-bar-container { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .rain-label { font-size: 0.75rem; color: #64748b; width: 80px; }
+    .rain-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+    .rain-bar { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .rain-value { font-size: 0.75rem; color: #94a3b8; width: 50px; text-align: right; }
+
+    /* Rules section */
+    .rules-section { }
+    .rules-title { font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; font-weight: 600; }
+    .rule-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px; border-radius: 10px; margin-bottom: 8px;
+      border-left: 3px solid;
+    }
+    .rule-item.red { background: rgba(239,68,68,0.1); border-color: #ef4444; }
+    .rule-item.amber { background: rgba(245,158,11,0.1); border-color: #f59e0b; }
+    .rule-item.green { background: rgba(34,197,94,0.1); border-color: #22c55e; }
+    .rule-icon { font-size: 1.2rem; }
+    .rule-text { flex: 1; }
+    .rule-time { font-size: 0.7rem; color: #64748b; margin-top: 2px; }
+    .rule-desc { font-size: 0.82rem; color: #cbd5e1; }
+
+    /* Source badge */
+    .source-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; color: #38bdf8;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
+
+<div class="bg"></div>
+
+<!-- Rain animation -->
+<div class="rain" id="rain"></div>
+
+<!-- Waves -->
+<div class="wave-container">
+  <div class="wave wave1"></div>
+  <div class="wave wave2"></div>
+  <div class="wave wave3"></div>
+</div>
+
 <div class="container">
+
+  <!-- Header -->
   <div class="header">
-    <h1>Flood <span>Risk</span> Management</h1>
-    <p>Bangladesh Flood Early Warning System</p>
+    <div class="flag">🇧🇩</div>
+    <h1>Bangladesh <span>Flood</span> Early Warning System</h1>
+    <p>Real-time flood risk analysis · Powered by OpenWeatherMap API</p>
   </div>
 
+  <!-- Alert Banner -->
+  <div class="alert-banner">
+    <span>⚠️</span>
+    <span>Monsoon season active — Stay alert and monitor water levels regularly</span>
+  </div>
+
+  <!-- Input Card -->
   <div class="card">
-    <h2>🔍 Analyze Risk</h2>
+    <div class="card-title">🔍 Analyze Flood Risk</div>
+
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('area', this)">By Area Name</button>
+      <button class="tab active" onclick="switchTab('area', this)">By Area</button>
       <button class="tab" onclick="switchTab('manual', this)">Manual Input</button>
     </div>
+
     <form method="POST" action="/predict">
+
+      <!-- Area Tab -->
       <div id="area-tab">
         <div class="form-group">
-          <label>Select Area</label>
+          <label>Select Area / District</label>
           <select name="area_name">
             <option value="">-- Choose an area --</option>
             {% for area in areas %}
@@ -89,64 +258,218 @@
           </select>
         </div>
       </div>
+
+      <!-- Manual Tab -->
       <div id="manual-tab" class="hidden">
         <div class="form-group">
-          <label>Area Name (optional)</label>
-          <input type="text" name="area_name" placeholder="e.g. My Area"/>
+          <label>Area Name</label>
+          <input type="text" name="area_name" placeholder="e.g. Noakhali"/>
         </div>
-        <div class="grid-3">
+        <div class="form-row-3">
           <div class="form-group">
             <label>Rainfall (mm)</label>
-            <input type="number" name="rainfall" placeholder="e.g. 200" min="0"/>
+            <input type="number" name="rainfall" placeholder="200" min="0"/>
           </div>
           <div class="form-group">
             <label>River Level (m)</label>
-            <input type="number" name="river_level" placeholder="e.g. 7.5" step="0.1" min="0"/>
+            <input type="number" name="river_level" placeholder="7.5" step="0.1"/>
           </div>
           <div class="form-group">
             <label>Temperature (°C)</label>
-            <input type="number" name="temperature" placeholder="e.g. 32" min="0"/>
+            <input type="number" name="temperature" placeholder="32"/>
           </div>
         </div>
       </div>
+
+      <!-- Date & Time Selection -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>📅 Forecast Date</label>
+          <input type="date" name="forecast_date" id="forecast_date"/>
+        </div>
+        <div class="form-group">
+          <label>🕐 Forecast Time</label>
+          <input type="time" name="forecast_time" id="forecast_time"/>
+        </div>
+      </div>
+
       <button type="submit" class="btn">⚡ Analyze Flood Risk</button>
     </form>
   </div>
 
+  <!-- Result Card -->
   {% if result %}
   <div class="card">
-    <div class="result">
+
+    <div class="source-badge">{{ result.source }}</div>
+
+    <!-- Risk Level -->
+    <div class="result-header">
       <div class="result-icon">{{ result.icon }}</div>
-      <div class="result-level {{ result.color }}">{{ result.level }} RISK</div>
-      <div class="result-confidence">
-        {{ result.area }} — Confidence: {{ result.confidence }}%
-      </div>
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-value">{{ result.rainfall }}</div>
-          <div class="stat-label">Rainfall (mm)</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">{{ result.river_level }}</div>
-          <div class="stat-label">River Level (m)</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">{{ result.temperature }}</div>
-          <div class="stat-label">Temperature (°C)</div>
-        </div>
+      <div class="result-level {{ result.color }}">{{ result.level }} FLOOD RISK</div>
+      <div class="result-meta">
+        {{ result.area }}
+        {% if result.forecast_date %} · {{ result.forecast_date }}{% endif %}
+        {% if result.forecast_time %} at {{ result.forecast_time }}{% endif %}
+        · Confidence: {{ result.confidence }}%
       </div>
     </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">{{ result.rainfall }}mm</div>
+        <div class="stat-label">Rainfall</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ result.river_level }}m</div>
+        <div class="stat-label">River Level</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ result.temperature }}°C</div>
+        <div class="stat-label">Temperature</div>
+      </div>
+    </div>
+
+    <!-- Rain Possibility -->
+    <div class="rain-section">
+      <div class="rain-title">🌧️ Rainfall Possibility & Forecast</div>
+
+      <div class="rain-bar-container">
+        <span class="rain-label">Next 6 hrs</span>
+        <div class="rain-bar-bg">
+          <div class="rain-bar" style="width: {{ result.rain_6h }}%; background: {% if result.rain_6h > 70 %}#ef4444{% elif result.rain_6h > 40 %}#f59e0b{% else %}#22c55e{% endif %};"></div>
+        </div>
+        <span class="rain-value">{{ result.rain_6h }}%</span>
+      </div>
+
+      <div class="rain-bar-container">
+        <span class="rain-label">Next 12 hrs</span>
+        <div class="rain-bar-bg">
+          <div class="rain-bar" style="width: {{ result.rain_12h }}%; background: {% if result.rain_12h > 70 %}#ef4444{% elif result.rain_12h > 40 %}#f59e0b{% else %}#22c55e{% endif %};"></div>
+        </div>
+        <span class="rain-value">{{ result.rain_12h }}%</span>
+      </div>
+
+      <div class="rain-bar-container">
+        <span class="rain-label">Next 24 hrs</span>
+        <div class="rain-bar-bg">
+          <div class="rain-bar" style="width: {{ result.rain_24h }}%; background: {% if result.rain_24h > 70 %}#ef4444{% elif result.rain_24h > 40 %}#f59e0b{% else %}#22c55e{% endif %};"></div>
+        </div>
+        <span class="rain-value">{{ result.rain_24h }}%</span>
+      </div>
+
+      <div style="font-size: 0.78rem; color: #64748b; margin-top: 8px;">
+        Weather: {{ result.weather_desc }} · Estimated rainfall: {{ result.estimated_rain }}mm
+      </div>
+    </div>
+
+    <!-- Safety Rules -->
+    <div class="rules-section">
+      <div class="rules-title">📋 Safety Rules for Local People</div>
+
+      {% if result.level == "HIGH" %}
+      <div class="rule-item red">
+        <span class="rule-icon">🚨</span>
+        <div class="rule-text">
+          <div class="rule-desc">Evacuate immediately to higher ground or flood shelter</div>
+          <div class="rule-time">⏰ Immediate action required — Right Now</div>
+        </div>
+      </div>
+      <div class="rule-item red">
+        <span class="rule-icon">📻</span>
+        <div class="rule-text">
+          <div class="rule-desc">Listen to Bangladesh Radio (AM 693) and local announcements continuously</div>
+          <div class="rule-time">⏰ Every 30 minutes</div>
+        </div>
+      </div>
+      <div class="rule-item red">
+        <span class="rule-icon">🚫</span>
+        <div class="rule-text">
+          <div class="rule-desc">Do NOT cross flooded roads, bridges or rivers — even if water looks shallow</div>
+          <div class="rule-time">⏰ Until water level drops below danger mark</div>
+        </div>
+      </div>
+      <div class="rule-item amber">
+        <span class="rule-icon">💊</span>
+        <div class="rule-text">
+          <div class="rule-desc">Keep emergency medicine, drinking water & dry food for at least 3 days</div>
+          <div class="rule-time">⏰ Prepare within next 2 hours</div>
+        </div>
+      </div>
+      <div class="rule-item amber">
+        <span class="rule-icon">📞</span>
+        <div class="rule-text">
+          <div class="rule-desc">Call Flood Emergency Helpline: 1090 (BWDB) or 999 (Police)</div>
+          <div class="rule-time">⏰ If in danger — Call immediately</div>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="rule-item green">
+        <span class="rule-icon">✅</span>
+        <div class="rule-text">
+          <div class="rule-desc">Current risk is low — Continue normal activities with caution</div>
+          <div class="rule-time">⏰ Monitor every 6 hours</div>
+        </div>
+      </div>
+      <div class="rule-item green">
+        <span class="rule-icon">🌊</span>
+        <div class="rule-text">
+          <div class="rule-desc">Check local river water levels regularly at nearest BWDB station</div>
+          <div class="rule-time">⏰ Morning & Evening daily</div>
+        </div>
+      </div>
+      <div class="rule-item amber">
+        <span class="rule-icon">🏠</span>
+        <div class="rule-text">
+          <div class="rule-desc">Keep important documents & valuables in waterproof bags, placed high</div>
+          <div class="rule-time">⏰ Precaution — Do it today</div>
+        </div>
+      </div>
+      <div class="rule-item amber">
+        <span class="rule-icon">📱</span>
+        <div class="rule-text">
+          <div class="rule-desc">Download SPARRSO Flood App & register for SMS alerts from DDM</div>
+          <div class="rule-time">⏰ One-time setup recommended</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
   </div>
   {% endif %}
+
 </div>
 
 <script>
+  // Tab switching
   function switchTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('area-tab').classList.add('hidden');
     document.getElementById('manual-tab').classList.add('hidden');
     document.getElementById(tab + '-tab').classList.remove('hidden');
+  }
+
+  // Set today's date and current time as default
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeStr = now.toTimeString().slice(0,5);
+  document.getElementById('forecast_date').value = dateStr;
+  document.getElementById('forecast_time').value = timeStr;
+
+  // Rain animation
+  const rain = document.getElementById('rain');
+  for (let i = 0; i < 60; i++) {
+    const drop = document.createElement('div');
+    drop.className = 'drop';
+    drop.style.left = Math.random() * 100 + 'vw';
+    drop.style.height = (Math.random() * 60 + 20) + 'px';
+    drop.style.animationDuration = (Math.random() * 1.5 + 0.5) + 's';
+    drop.style.animationDelay = (Math.random() * 3) + 's';
+    drop.style.opacity = Math.random() * 0.5 + 0.1;
+    rain.appendChild(drop);
   }
 </script>
 </body>
