@@ -1,24 +1,33 @@
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
 import joblib
 import os
 
-# ফোল্ডার তৈরি
 os.makedirs("models", exist_ok=True)
 
-# একটু বেশি এবং বৈচিত্র্যময় ডামি ডেটা (ধরে নিচ্ছি ইনপুটগুলো হলো: বৃষ্টিপাত, নদীর উচ্চতা, তাপমাত্রা)
-# কম ভ্যালু = Low Risk (0), বেশি ভ্যালু = High Risk (1)
+# বেশি এবং realistic training data
 X = [
-    [10, 1, 25], [15, 2, 24], [20, 1, 26],  # Low Risk ডেটা
-    [90, 5, 32], [100, 6, 30], [85, 4, 29], # High Risk ডেটা
-    [12, 2, 23], [95, 5, 31], [18, 1, 25]   # মিক্সড ডেটা
+    # Low Risk (0)
+    [50, 2, 25], [60, 3, 26], [70, 3.5, 27], [55, 2.5, 24],
+    [65, 3, 28], [45, 2, 23], [75, 3.8, 29], [40, 1.5, 22],
+    
+    # High Risk (1)
+    [250, 7, 32], [280, 8, 33], [300, 9, 34], [320, 9.8, 36],
+    [290, 8.5, 35], [270, 7.8, 33], [310, 9.2, 35], [260, 7.5, 32],
+    
+    # Medium Risk (0-1 boundary)
+    [150, 5, 30], [180, 6, 31], [120, 4.5, 29], [200, 6.5, 32]
 ]
-y = [0, 0, 0, 1, 1, 1, 0, 1, 0] # ০ এবং ১ এর সংখ্যা সামঞ্জস্যপূর্ণ করা হলো
 
-# মডেল ট্রেইনিং
-model = RandomForestClassifier(n_estimators=10, random_state=42)
+y = [0, 0, 0, 0, 0, 0, 0, 0,  # Low Risk
+     1, 1, 1, 1, 1, 1, 1, 1,  # High Risk
+     0, 0, 0, 0]               # Medium (treated as Low)
+
+# Model training
+model = RandomForestClassifier(n_estimators=50, max_depth=10, random_state=42)
 model.fit(X, y)
 
-# মডেল সেভ
+# Save model
 joblib.dump(model, "models/flood_model.pkl")
 
-print("Model created successfully with balanced data!")
+print("✅ Model trained successfully with realistic data!")
