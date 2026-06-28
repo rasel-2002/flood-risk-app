@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20998025.svg)](https://doi.org/10.5281/zenodo.20998025)
+
 # Bangladesh Flood Early Warning System
 
 A machine learning-powered web application for real-time flood risk prediction across Bangladesh, integrating live weather data with trained hydrological models.
