@@ -1,15 +1,19 @@
 from flask import Flask, render_template, request
-from models.flood_area import FloodRiskModel
 import json
 import requests
 import os
 from dotenv import load_dotenv
+import joblib
+from sklearn.preprocessing import StandardScaler
 
 load_dotenv()
 
 app = Flask(__name__)
-model = FloodRiskModel()
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
+
+# Load model and scaler
+rf_model = joblib.load("models/flood_model.pkl")
+scaler = joblib.load("models/scaler.pkl")
 
 def load_areas():
     with open("data/areas.json") as f:
@@ -67,21 +71,33 @@ def predict():
         weather_desc = "Manual input"
         source = "✏️ Manual input"
 
-    result = model.predict(rainfall, river_level, temperature)
-    result["area"] = area_name or "Custom Input"
-    result["rainfall"] = rainfall
-    result["river_level"] = river_level
-    result["temperature"] = temperature
-    result["weather_desc"] = weather_desc
-    result["source"] = source
-    # Rain possibility calculation
-    base = min(rainfall / 3, 100)
-    result["rain_6h"] = int(min(base * 0.7, 100))
-    result["rain_12h"] = int(min(base * 0.9, 100))
-    result["rain_24h"] = int(min(base, 100))
-    result["estimated_rain"] = round(rainfall * 0.3, 1)
-    result["forecast_date"] = data.get("forecast_date", "")
-    result["forecast_time"] = data.get("forecast_time", "")
+    # Scale input data
+    input_data = [[rainfall, river_level, temperature]]
+    input_scaled = scaler.transform(input_data)
+    
+    # Predict
+    prediction = rf_model.predict(input_scaled)[0]
+    probability = rf_model.predict_proba(input_scaled)[0]
+    
+    risk_level = "High Risk" if prediction == 1 else "Low Risk"
+    risk_percentage = int(probability[1] * 100)
+
+    result = {
+        "risk_level": risk_level,
+        "risk_percentage": risk_percentage,
+        "area": area_name or "Custom Input",
+        "rainfall": rainfall,
+        "river_level": river_level,
+        "temperature": temperature,
+        "weather_desc": weather_desc,
+        "source": source,
+        "rain_6h": int(min((rainfall / 3) * 0.7, 100)),
+        "rain_12h": int(min((rainfall / 3) * 0.9, 100)),
+        "rain_24h": int(min(rainfall / 3, 100)),
+        "estimated_rain": round(rainfall * 0.3, 1),
+        "forecast_date": data.get("forecast_date", ""),
+        "forecast_time": data.get("forecast_time", "")
+    }
 
     return render_template("index.html",
                            areas=[a["name"] for a in areas],

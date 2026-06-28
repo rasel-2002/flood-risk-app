@@ -1,40 +1,49 @@
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
 import joblib
 import os
+import numpy as np
 
-class FloodRiskModel:
-    def __init__(self):
-        self.model_path = "models/flood_model.pkl"
-        self.model = self._load_or_train()
+os.makedirs("models", exist_ok=True)
 
-    def _train_model(self):
-        X = np.array([
-            [200, 8.5, 35], [150, 6.0, 30], [300, 9.5, 38],
-            [50,  2.0, 25], [80,  3.5, 27], [250, 8.0, 33],
-            [400, 10.0, 40],[30,  1.5, 22], [180, 7.0, 31],
-            [100, 4.5, 28],
-        ])
-        y = np.array([1, 1, 1, 0, 0, 1, 1, 0, 1, 0])
-        model = RandomForestClassifier(n_estimators=10, random_state=42)
-        model.fit(X, y)
-        joblib.dump(model, self.model_path)
-        return model
+# বেশি realistic এবং balanced training data
+X = [
+    # Low Risk (0) - কম বৃষ্টি, কম নদীর উচ্চতা
+    [30, 1.5, 22], [40, 2, 23], [50, 2.5, 24], [45, 2, 25],
+    [35, 1.8, 23], [55, 2.8, 26], [60, 3, 27], [48, 2.3, 24],
+    [42, 2.1, 25], [52, 2.6, 26],
+    
+    # Medium Risk (0) - মাঝারি বৃষ্টি, মাঝারি নদীর উচ্চতা
+    [100, 4, 28], [120, 4.5, 29], [110, 4.2, 28], [130, 4.8, 30],
+    [105, 4.1, 29], [125, 4.6, 29], [115, 4.3, 28], [135, 4.9, 30],
+    
+    # High Risk (1) - বেশি বৃষ্টি, বেশি নদীর উচ্চতা
+    [250, 7, 32], [280, 8, 33], [300, 9, 34], [320, 9.8, 36],
+    [270, 7.5, 32], [290, 8.5, 35], [310, 9.2, 35], [260, 7.2, 33],
+    [275, 7.8, 33], [305, 9.1, 35]
+]
 
-    def _load_or_train(self):
-        if os.path.exists(self.model_path):
-            return joblib.load(self.model_path)
-        return self._train_model()
+y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Low Risk (10)
+     0, 0, 0, 0, 0, 0, 0, 0,        # Medium Risk (8) - treated as Low
+     1, 1, 1, 1, 1, 1, 1, 1, 1, 1]  # High Risk (10)
 
-    def predict(self, rainfall, river_level, temperature):
-        features = np.array([[rainfall, river_level, temperature]])
-        result = self.model.predict(features)[0]
-        proba = self.model.predict_proba(features)[0]
-        confidence = round(max(proba) * 100, 1)
+# Standardize data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
-        if result == 1:
-            return {"level": "HIGH", "confidence": confidence,
-                    "color": "danger", "icon": "⚠️"}
-        else:
-            return {"level": "LOW", "confidence": confidence,
-                    "color": "success", "icon": "✅"}
+# Model training with better parameters
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=8,
+    min_samples_split=3,
+    min_samples_leaf=1,
+    random_state=42,
+    class_weight='balanced'
+)
+model.fit(X_scaled, y)
+
+# Save both model and scaler
+joblib.dump(model, "models/flood_model.pkl")
+joblib.dump(scaler, "models/scaler.pkl")
+
+print("✅ Model trained successfully with balanced and scaled data!")
